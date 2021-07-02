@@ -1,0 +1,177 @@
+type Event {
+    result: String
+}
+
+type Restaurant {
+    id: ID!
+    name: String!
+    address: String!
+    city: String!
+    state: String!
+    rating: Float!
+    cuisine: String!
+    label: String!
+}
+
+input RestaurantInput {
+    name: String!
+    address: String!
+    cityId: String!
+    stateId: String!
+    cuisineId: String!
+
+}
+
+type City {
+    cityId: String!
+    cityName: String!
+    stateName: String!
+    label: String!
+}
+
+type CityInput {
+    cityName: String!
+    stateId: String!
+}
+
+type State {
+    stateId: String!
+    stateName: String!
+    label: String!
+}
+
+type Cuisine {
+    cuisineId: String!
+    cuisineName: String!
+    label: String!
+}
+
+
+
+type Person {
+    id: ID! 
+    firstName: String!
+    lastName: String!
+    email: String!
+    city: String!
+    label: String!
+}
+
+input PersonInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    cityId: String!
+
+}
+
+type Review {
+    id: ID!
+    rating: Int!
+    body: String!
+    aboutRestaurant: String!
+    createdAt: AWSDateTime!
+    createrId: String!
+    lable: String!
+}
+
+input ReviewInput {
+    rating: Int!
+    body: String!
+    aboutRestaurant: String!
+    myId: String!
+}
+
+type ReviewRating {
+    id: ID!
+    rating: Int!
+    createdAt: AWSDateTime!
+    aboutReview: String!
+    createrId: String!
+    label: String!
+}
+
+input ReviewRatingInput {
+    rating: Int!
+    aboutReview: String!
+    myId: String 
+}
+
+
+type FreindRequest {
+    firstName: String!
+    lastName: String!
+    personId: String!
+}
+
+input RestaurantHighestRatedNearMeCuisineSpecificInput {
+    myId: String!
+    cuisine: String!
+}
+
+input XRelatedToYInput {
+    xId: String!
+    yId: String!
+
+}
+
+input RestaurantsMyFreindsReviewedRatedPastXDaysInput {
+    myId: String!
+    pastDays: Int!
+}
+
+type Query {
+    getRestaurants : [Restaurant]
+    getPersons: [Person]
+    getCities: [City]
+    getStates: [State]
+    getCuisines: [Cuisine]
+    getFriendRequests(myId: String!): [FreindRequest]
+    getPersonById(personId: String!): [Person]
+    getFriends(myId: String): [Person]
+    getRestaurantNewestReviews(RestaurantId: String!): [Review]
+    getMyFriendsOfFriends(myId: String): [Person]
+    getXRelatedToY(xAndYIds: XRelatedToYInput): [Person]
+    getRestaurantHighestRatedNearMeCuisineSpecific(myIdAndCuisine: RestaurantHighestRatedNearMeCuisineSpecificInput): Restaurant
+    getTenRestaurantsHighestRattedNearMe(myId: String!): [Restaurant]
+    getRestaurantsMyFriendRecommend(myId: String!): [Restaurant]
+    getBestRestaurantsOnBasedMyFriendsRating(myId: String!): [Restaurant]
+    getRestaurantsMyFreindsReviewedRatedPastXDays(myIdAndPastDays: RestaurantsMyFreindsReviewedRatedPastXDaysInput): [Restaurant]
+
+}
+
+input FriendRequestInput {
+    myId: String!
+    firendId: String!
+}
+
+enum ACTIONS {
+    REVIEW_CREATED
+    REVIEW_RATING_CREATED
+    PERSON_ADDED
+    RESTAURANT_ADDED
+}
+
+type AdditionOfResoucesOutput {
+    action: ACTIONS!
+}
+
+type Mutation {
+    createPerson(personDetail: PersonInput ): Event
+    createRestaurant(restaurantDetail: RestaurantInput): Event
+    createReview(reviewDetail: ReviewInput): Event
+    createReviewRating(reviewRatingDetail: ReviewRatingInput): Event
+    createCuisine(cuisineName: String!): Event
+    createCity(cityDetail: CityInput!): Event
+    createState(stateName: String!): Event
+    sendFriendRequest(myIdAndFriendId: FriendRequestInput!): Event
+    acceptFriendRequest(myIdAndFriendId: FriendRequestInput!): Event
+    addionOfResouces(action: ACTIONS): AdditionOfResoucesOutput
+        @aws_iam      
+    
+}
+
+type Subscription {
+    onResourceAddition: AdditionOfResoucesOutput
+        @aws_subscribe(mutations: ["addionOfResouces"])
+}
