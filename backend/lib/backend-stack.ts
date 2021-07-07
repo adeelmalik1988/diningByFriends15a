@@ -172,7 +172,7 @@ export class BackendStack extends cdk.Stack {
     // Creating neptune instance
 
     const neptuneInstance = new neptune.CfnDBInstance(this,"myinstance",{
-      dbInstanceClass: "ml.t2.medium",
+      dbInstanceClass: "db.t3.medium",
       dbClusterIdentifier: neptuneCluster.dbClusterIdentifier,
       availabilityZone: vpc.availabilityZones[0]
 
@@ -230,6 +230,31 @@ export class BackendStack extends cdk.Stack {
     queryLambdaResource.createResolver({
       typeName: "Query",
       fieldName: "getPersons"
+    })
+
+    queryLambdaResource.createResolver({
+      typeName: "Query",
+      fieldName: "getCities"
+    })
+
+    queryLambdaResource.createResolver({
+      typeName: "Query",
+      fieldName: "getStates"
+    })
+
+    queryLambdaResource.createResolver({
+      typeName: "Query",
+      fieldName: "getCuisines"
+    })
+
+    queryLambdaResource.createResolver({
+      typeName: "Query",
+      fieldName: "getReviewRatings"
+    })
+
+    queryLambdaResource.createResolver({
+      typeName: "Query",
+      fieldName: "getFriendRequests"
     })
 
     queryLambdaResource.createResolver({
