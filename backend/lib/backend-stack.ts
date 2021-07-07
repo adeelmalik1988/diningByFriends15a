@@ -357,6 +357,9 @@ export class BackendStack extends cdk.Stack {
       } else if (mut === "createState"){
         details = `\\\"stateName\\\":\\\"$ctx.args.stateName\\\"`
 
+      } else if (mut === "addionOfResouces"){
+        details = `\\\"action\\\":\\\"$ctx.args.action\\\"`
+
       }
 
       httpDataSource.createResolver({
@@ -392,25 +395,6 @@ export class BackendStack extends cdk.Stack {
       }`),
       responseMappingTemplate: appsync.MappingTemplate.fromString("$util.toJson($context.result)")
     })
-
-
-
-
-
-
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
 
 
 
