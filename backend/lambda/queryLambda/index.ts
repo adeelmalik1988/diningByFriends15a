@@ -15,6 +15,7 @@ import getCities from "./getCities";
 import getStates from "./getStates";
 import getCuisines from "./getCuisines";
 import getFriendRequests from "./getFriendRequests";
+import getReviewRatings from "./getReviewRatings";
 
 type AppsyncEvent = {
     info: {
@@ -28,6 +29,7 @@ type AppsyncEvent = {
         xAndYIds: XRelatedToYInput
         myIdAndCuisine: RestaurantHighestRatedNearMeCuisineSpecificInput
         myIdAndPastDays: RestaurantsMyFreindsReviewedRatedPastXDaysInput
+        reviewId: string
 
     }
 
@@ -49,6 +51,8 @@ exports.handler = async (event: AppsyncEvent) => {
             return await getStates();
         case "getCuisines":
             return await getCuisines();
+        case "getReviewRatings":
+            return await getReviewRatings(event.arguments.reviewId);
         case "getPersonById":
             return await GetPersonById(event.arguments.personId);
         case "getFriendRequests":
@@ -57,7 +61,6 @@ exports.handler = async (event: AppsyncEvent) => {
             return await GetFriends(event.arguments.myId);
         case "getRestaurantNewestReviews":
             return await GetRestaurantNewestReviews(event.arguments.RestaurantId);
-
         case "getMyFriendsOfFriends":
             return await GetMyFriendsOfFriends(event.arguments.myId);
         case "getXRelatedToY":

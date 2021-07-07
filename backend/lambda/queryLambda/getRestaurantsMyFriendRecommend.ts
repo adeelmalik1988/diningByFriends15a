@@ -1,5 +1,6 @@
 import * as gremlin from "gremlin"
 import {APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda"
+import { EdgeFriendshipLabel, Edges, FriendRequestStatus, Vertics, VerticsPersonLabel, VerticsRestaurantLabel, VerticsReviewLabel } from "./QueryTypes"
 
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
 const Graph = gremlin.structure.Graph
@@ -11,9 +12,50 @@ export default async function GetRestaurantsMyFriendRecommend(myId : String) {
 
     const graph = new Graph()
     const g = graph.traversal().withRemote(dc)
+    const __ = gremlin.process.statics
+    const order = gremlin.process.order
+    const values = gremlin.process.column.values
 
     try {
-        let data = await g.V().hasLabel("Restaurant").toList()
+        let data = await g.V()
+        .has(`${Vertics.PERSON}`, `${VerticsPersonLabel.PERSON_ID}`, `${myId}`).
+        store('x').
+        bothE(`${Edges.FRIENDSHIP}`).where(__.has(`${EdgeFriendshipLabel.STATUS}`, `${FriendRequestStatus.CONFIRMED}`)).
+        store('x').
+        otherV().store('x').
+        outE(`${Edges.WROTE}`).store(`x`).inV().
+        optional(
+            __.hasLabel(`${Vertics.REVIEW_RATING}`).outE(`${Edges.ABOUT}`).
+                inV()
+
+        ).
+        //otherV().store('x').
+        outE(`${Edges.ABOUT}`).store('x').
+        otherV().
+        // //dedup().
+        //store('x').
+        // aggregate('agrlist').
+        cap('x').
+        unfold().
+        hasLabel(`${Edges.ABOUT}`).as('reviews').
+        project(
+            'review_rating',
+            'restaurant_name',
+        ).
+        by(
+            __.select('reviews').outV().values(`${VerticsReviewLabel.RATING}`)
+        ).
+        by(
+            __.select('reviews').inV().values(`${VerticsRestaurantLabel.RESTAURANT_NAME}`)
+        ).
+        group().
+        by('restaurant_name').
+        by(__.select('review_rating').sum().as('rating')).
+        unfold().
+        order().
+        by(values ,order.desc).
+        toList()
+
         //let vertices = Array()
 
         // for (const v of data) {

@@ -1,6 +1,5 @@
 import * as gremlin from "gremlin"
-import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda"
-import { XRelatedToYInput } from "./QueryTypes"
+import { EdgeFriendshipLabel, Edges, FriendRequestStatus, Vertics, VerticsPersonLabel, XRelatedToYInput } from "./QueryTypes"
 
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
 const Graph = gremlin.structure.Graph
@@ -12,9 +11,17 @@ export default async function GetXRelatedToY(xAndYIds: XRelatedToYInput) {
 
     const graph = new Graph()
     const g = graph.traversal().withRemote(dc)
+    const __ = gremlin.process.statics
 
     try {
-        let data = await g.V().toList()
+        let data = await g.V().hasLabel(`${Vertics.PERSON}`).
+        has(`${VerticsPersonLabel.PERSON_ID}`,`${xAndYIds.xId}`).
+        until(__.has(`${Vertics.PERSON}`,`${VerticsPersonLabel.PERSON_ID}`,`${xAndYIds.yId}`)).
+        repeat(
+            __.bothE(`${Edges.FRIENDSHIP}`).has(`${EdgeFriendshipLabel.STATUS}`,`${FriendRequestStatus.CONFIRMED}`).otherV().
+            simplePath()
+        ).path().
+       toList()
         //let vertices = Array()
 
         // for (const v of data) {

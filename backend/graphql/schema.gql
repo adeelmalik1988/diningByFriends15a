@@ -70,7 +70,7 @@ type Review {
     rating: Int!
     body: String!
     aboutRestaurant: String!
-    createdAt: AWSDateTime!
+    createdAt: String!
     createrId: String!
     lable: String!
 }
@@ -85,7 +85,7 @@ input ReviewInput {
 type ReviewRating {
     id: ID!
     rating: Int!
-    createdAt: AWSDateTime!
+    createdAt: String!
     aboutReview: String!
     createrId: String!
     label: String!
@@ -126,6 +126,7 @@ type Query {
     getCities: [City]
     getStates: [State]
     getCuisines: [Cuisine]
+    getReviewRatings(reviewId: String!): [ReviewRating]
     getFriendRequests(myId: String!): [FreindRequest]
     getPersonById(personId: String!): [Person]
     getFriends(myId: String): [Person]

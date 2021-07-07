@@ -80,6 +80,15 @@ export enum getMyFriendsOfFriendsReturn {
     city = 'city'
 }
 
+export enum getReviewRatingsReturn {
+    id = 'id',
+    rating = 'rating',
+    createdAt = 'createdAt',
+    aboutReview = 'aboutReview',
+    createrId = 'createrId',
+    label = 'label'
+}
+
 export enum FriendRequestStatus {
     REQUESTED = "requested" ,
     CONFIRMED = "confirmed"
