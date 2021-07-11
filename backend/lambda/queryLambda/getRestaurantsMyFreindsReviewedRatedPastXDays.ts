@@ -1,13 +1,30 @@
-import * as gremlin from "gremlin"
+//import * as gremlin from "gremlin"
+import { structure, process as gprocess , driver } from './gremlinReturnConversion'
 import { EdgeFriendshipLabel, Edges, FriendRequestStatus, RestaurantsMyFreindsReviewedRatedPastXDaysInput, Vertics, VerticsPersonLabel, VerticsRestaurantLabel, VerticsReviewLabel, VerticsReviewRatingLabel } from './QueryTypes'
 
-const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
-const Graph = gremlin.structure.Graph
-const uri = process.env.NEPTUNE_READER
+const DriverRemoteConnection = driver.DriverRemoteConnection
+const Graph = structure.Graph
+//const uri = process.env.NEPTUNE_READER
+declare var process: {
+    env: {
+        
+        NEPTUNE_READER: string,
+        NEPTUNE_PORT: string
+    }
+}
 
 export default async function GetRestaurantsMyFreindsReviewedRatedPastXDays(myIdAndPastDays: RestaurantsMyFreindsReviewedRatedPastXDaysInput) {
 
-    let dc = new DriverRemoteConnection(`wss://${uri}/gremlin`,{})
+    //let dc = new DriverRemoteConnection(`wss://${uri}/gremlin`,{})
+    //let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    let dc = new DriverRemoteConnection(`wss://${process.env.NEPTUNE_READER}:${process.env.NEPTUNE_PORT}/gremlin`, {
+        MimeType: 'application/vnd.gremlin-v2.0+json',
+        Headers: {},
+    })
+    
+    console.log('NEPTUNE_READER',process.env.NEPTUNE_READER)
+    console.log('NEPTUNE_PORT',process.env.NEPTUNE_PORT)
+
 
     var datenow = new Date()
     var days = myIdAndPastDays.pastDays
@@ -15,10 +32,11 @@ export default async function GetRestaurantsMyFreindsReviewedRatedPastXDays(myId
 
     const graph = new Graph()
     const g = graph.traversal().withRemote(dc)
-    const __ = gremlin.process.statics
-    const gte = gremlin.process.P.gte
-    const values = gremlin.process.column.values
-    const order = gremlin.process.order
+    const __ = gprocess.statics
+    const gte = gprocess.P.gte
+    const values = gprocess.column.values
+    const order = gprocess.order
+    const keys = gprocess.column.keys
 
     try {
         let data = await g.V()
@@ -79,7 +97,16 @@ export default async function GetRestaurantsMyFreindsReviewedRatedPastXDays(myId
         unfold().
         order().
         by(values ,order.desc).
-        // //limit(1).
+        project(
+            'restaurant_name',
+            'rating'
+        ).by(
+            keys
+            
+        ).
+        by(
+            values
+        ).
         toList()
         //let vertices = Array()
 

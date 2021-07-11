@@ -1,11 +1,19 @@
-import * as gremlin from "gremlin"
+//import * as gremlin from "gremlin"
+import { structure, process as gprocess , driver } from './gremlinReturnConversion'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda"
 import { EdgeFriendshipLabel, Edges, FriendRequestInput, Vertics, VerticsPersonLabel } from "./MutationTypes"
 import { FriendRequestStatus } from "./MutationTypes"
 
-const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
-const Graph = gremlin.structure.Graph
-const uri = process.env.NEPTUNE_WRITER
+const DriverRemoteConnection = driver.DriverRemoteConnection
+const Graph = structure.Graph
+//const uri = process.env.NEPTUNE_WRITER
+declare var process: {
+    env: {
+
+        NEPTUNE_WRITER: string,
+        NEPTUNE_PORT: string
+    }
+}
 
 export default async function acceptFriendRequest(myIdAndFriendId: FriendRequestInput) {
 
@@ -19,7 +27,18 @@ export default async function acceptFriendRequest(myIdAndFriendId: FriendRequest
     // }
 
     //let dc = new DriverRemoteConnection(`wss://${uri}/gremlin`, {})
-    let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    console.log('myIdAndFriendId', myIdAndFriendId)
+
+
+
+    //let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    let dc = new DriverRemoteConnection(`wss://${process.env.NEPTUNE_WRITER}:${process.env.NEPTUNE_PORT}/gremlin`, {
+        MimeType: 'application/vnd.gremlin-v2.0+json',
+        Headers: {},
+    })
+    console.log('NEPTUNE_WRITER', process.env.NEPTUNE_WRITER)
+    console.log('NEPTUNE_PORT', process.env.NEPTUNE_PORT)
+
 
 
     const graph = new Graph()
@@ -32,7 +51,7 @@ export default async function acceptFriendRequest(myIdAndFriendId: FriendRequest
     // select("e").
     // property("status","updated").iterate()
 
-    const __ = gremlin.process.statics
+    const __ = gprocess.statics
 
 
 

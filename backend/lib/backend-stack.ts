@@ -15,13 +15,13 @@ export class BackendStack extends cdk.Stack {
 
     // The code that defines your stack goes here
 
-    const userPool = new cognito.UserPool(this,"userPool-DiningByFriends",{
+    const userPool = new cognito.UserPool(this, "userPool-DiningByFriends", {
       selfSignUpEnabled: true,
       accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
       userVerification: {
         emailStyle: cognito.VerificationEmailStyle.CODE
       },
-      autoVerify: {email: true},
+      autoVerify: { email: true },
       standardAttributes: {
         email: {
           required: true,
@@ -35,11 +35,11 @@ export class BackendStack extends cdk.Stack {
 
     })
 
-    const userPoolClient = new cognito.UserPoolClient(this,"userPoolClient-diningByFriends",{
+    const userPoolClient = new cognito.UserPoolClient(this, "userPoolClient-diningByFriends", {
       userPool
     })
 
-    const adminGroup =  new cognito.CfnUserPoolGroup(this,"diningByFriends_admingroup",{
+    const adminGroup = new cognito.CfnUserPoolGroup(this, "diningByFriends_admingroup", {
       groupName: 'admins',
       userPoolId: userPool.userPoolId,
 
@@ -47,25 +47,37 @@ export class BackendStack extends cdk.Stack {
 
     //AppsyncAPI only be allowed with userPool
 
-    const saasApi = new appsync.GraphqlApi(this,'diningByFriendsAPI',{
+    const saasApi = new appsync.GraphqlApi(this, 'diningByFriendsAPI', {
       name: 'DiningByFriendsAPI',
       schema: appsync.Schema.fromAsset('graphql/schema.gql'),
       authorizationConfig: {
         defaultAuthorization: {
-          userPoolConfig: {userPool},
-          authorizationType: appsync.AuthorizationType.USER_POOL,
-        
+          userPoolConfig: { userPool },
+          authorizationType: appsync.AuthorizationType.API_KEY,
+          
+
+
         },
+
+
+
+
+        //additionalAuthorizationModes: appsync.
+
       },
+
 
       logConfig: {
         fieldLogLevel: appsync.FieldLogLevel.ALL
       },
       xrayEnabled: true,
-      
+
+
     })
 
-    const vpc = new ec2.Vpc(this, 'NeptuneVPC',{
+
+
+    const vpc = new ec2.Vpc(this, 'NeptuneVPC', {
       // maxAzs: 2,
       subnetConfiguration: [{
         subnetType: ec2.SubnetType.ISOLATED,
@@ -101,8 +113,8 @@ export class BackendStack extends cdk.Stack {
 
     // })
 
-    const roleMutationLambda = new iam.Role(this,"lambdaAccessAppsync",{
-      assumedBy: new iam.ServicePrincipal("lambda-amazonaws.com")
+    const roleMutationLambda = new iam.Role(this, "lambdaAccessAppsync", {
+      assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com")
     })
 
     const policyMutationLambda = new iam.PolicyStatement({
@@ -112,7 +124,12 @@ export class BackendStack extends cdk.Stack {
         "logs:*",
         "lambda:*",
         "rds:*",
-        "iam:*"
+        "iam:*",
+        "s3:*",
+        "cloudformation:*Stack",
+        "ec2:*",
+        "ssm:GetParameters",
+
 
       ],
       resources: ["*"]
@@ -138,18 +155,18 @@ export class BackendStack extends cdk.Stack {
     // roleA.addToPolicy(policyA)
 
     // Create a security group and subnetgroup to ensure ec2 and neptune cluster deploy on the same vpc
-    const sg1 = new ec2.SecurityGroup(this,"mySecurityGroup1",{
+    const sg1 = new ec2.SecurityGroup(this, "mySecurityGroup1", {
       vpc,
       allowAllOutbound: true,
       description: "security group 1",
       securityGroupName: "mySecurityGroup",
     })
 
-    cdk.Tags.of(sg1).add("Name","mySecurityGroup");
+    cdk.Tags.of(sg1).add("Name", "mySecurityGroup");
 
     sg1.addIngressRule(sg1, ec2.Port.tcp(8182), "MyRule")
 
-    const neptuneSubnet = new neptune.CfnDBSubnetGroup(this,"neptuneSubmitGroup",{
+    const neptuneSubnet = new neptune.CfnDBSubnetGroup(this, "neptuneSubmitGroup", {
       dbSubnetGroupDescription: "My Subnet",
       subnetIds: vpc.selectSubnets({
         subnetType: ec2.SubnetType.ISOLATED
@@ -159,19 +176,19 @@ export class BackendStack extends cdk.Stack {
     })
 
     // Creating neptune cluster
-    const neptuneCluster = new neptune.CfnDBCluster(this,"MyCluster",{
+    const neptuneCluster = new neptune.CfnDBCluster(this, "MyCluster", {
       dbSubnetGroupName: neptuneSubnet.dbSubnetGroupName,
       dbClusterIdentifier: "myNaptuneDBCluster",
       vpcSecurityGroupIds: [sg1.securityGroupId]
 
     })
 
-   
+
     neptuneCluster.addDependsOn(neptuneSubnet)
 
     // Creating neptune instance
 
-    const neptuneInstance = new neptune.CfnDBInstance(this,"myinstance",{
+    const neptuneInstance = new neptune.CfnDBInstance(this, "myinstance", {
       dbInstanceClass: "db.t3.medium",
       dbClusterIdentifier: neptuneCluster.dbClusterIdentifier,
       availabilityZone: vpc.availabilityZones[0]
@@ -179,36 +196,38 @@ export class BackendStack extends cdk.Stack {
     });
     neptuneInstance.addDependsOn(neptuneCluster)
 
-  
 
-    const queryLambda = new lambda.Function(this,"LambdaForQuery",{
+
+    const queryLambda = new lambda.Function(this, "LambdaForQuery", {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: new lambda.AssetCode("lambda/queryLambda"),
       handler: "index.handler",
       vpc: vpc,
       securityGroups: [sg1],
       environment: {
-        NEPTUNE_READER: neptuneCluster.attrReadEndpoint
+        NEPTUNE_READER: neptuneCluster.attrReadEndpoint,
+        NEPTUNE_PORT: neptuneCluster.attrPort
       },
       vpcSubnets: {
         subnetType: ec2.SubnetType.ISOLATED
       }
     })
 
-    const mutationLambda = new lambda.Function(this,"LambdaForMutation",{
+    const mutationLambda = new lambda.Function(this, "LambdaForMutation", {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: new lambda.AssetCode("lambda/mutationLambda"),
       handler: "index.handler",
       vpc,
       securityGroups: [sg1],
       environment: {
-        NEPTUNE_WRITER: neptuneCluster.attrEndpoint
+        NEPTUNE_WRITER: neptuneCluster.attrEndpoint,
+        NEPTUNE_PORT: neptuneCluster.attrPort
       },
       vpcSubnets: {
         subnetType: ec2.SubnetType.ISOLATED
       },
       role: roleMutationLambda,
-      
+
     })
 
     mutationLambda.addEnvironment("APPSYNC_ENDPOINT_URL", saasApi.graphqlUrl)
@@ -218,7 +237,7 @@ export class BackendStack extends cdk.Stack {
 
     //Defining SaasAPI Data source for Query
 
-    const queryLambdaResource = saasApi.addLambdaDataSource("queryLambdaResource",queryLambda)
+    const queryLambdaResource = saasApi.addLambdaDataSource("queryLambdaResource", queryLambda)
 
     //Defining Resolvers for Query
 
@@ -309,7 +328,7 @@ export class BackendStack extends cdk.Stack {
 
     //Defining DataSource for mutation that will generate events
 
-    const httpDataSource = saasApi.addHttpDataSource("ds",`https://events.${this.region}.amazonaws.com/`,{
+    const httpDataSource = saasApi.addHttpDataSource("ds", `https://events.${this.region}.amazonaws.com/`, {
       name: "httpsDsWithEventBridge",
       description: "From Appsync to Eventbridge",
       authorizationConfig: {
@@ -325,39 +344,39 @@ export class BackendStack extends cdk.Stack {
 
     /* Mutation */
 
-    const mutations = ["createPerson","createRestaurant","createReview","createReviewRating","sendFriendRequest","acceptFriendRequest","createCuisine","createCity","createState"]
+    const mutations = ["createPerson", "createRestaurant", "createReview", "createReviewRating", "sendFriendRequest", "acceptFriendRequest", "createCuisine", "createCity", "createState"]
 
-    mutations.forEach((mut)=>{
+    mutations.forEach((mut) => {
       let details = `\\\"id\\\": \\\"$ctx.args.id\\\"`;
 
-      if (mut === "createPerson"){
-        details = `\\\"firstName\\\":\\\"$ctx.args.personDetail.firstName\\\",\\\"lastName\\\":\\\"$ctx.args.personDetail.lastName\\\",\\\"email\\\":\\\"$ctx.args.personDetail.email\\\"`
+      if (mut === "createPerson") {
+        details = `\\\"firstName\\\":\\\"$ctx.args.personDetail.firstName\\\",\\\"lastName\\\":\\\"$ctx.args.personDetail.lastName\\\",\\\"email\\\":\\\"$ctx.args.personDetail.email\\\",\\\"cityId\\\":\\\"$ctx.args.personDetail.cityId\\\"`
 
       } else if (mut === "createRestaurant") {
-        details = `\\\"name\\\":\\\"$ctx.args.restaurantDetail.name\\\",\\\"address\\\":\\\"$ctx.args.restaurantDetail.address\\\",\\\"city\\\":\\\"$ctx.args.restaurantDetail.city\\\",\\\"state\\\":\\\"$ctx.args.restaurantDetail.state\\\",\\\"cuisine\\\":\\\"$ctx.args.restaurantDetail.cuisine\\\"`
+        details = `\\\"name\\\":\\\"$ctx.args.restaurantDetail.name\\\",\\\"address\\\":\\\"$ctx.args.restaurantDetail.address\\\",\\\"cityId\\\":\\\"$ctx.args.restaurantDetail.cityId\\\",\\\"stateId\\\":\\\"$ctx.args.restaurantDetail.stateId\\\",\\\"cuisineId\\\":\\\"$ctx.args.restaurantDetail.cuisineId\\\"`
 
-      } else if (mut === "createReview"){
+      } else if (mut === "createReview") {
         details = `\\\"rating\\\":\\\"$ctx.args.reviewDetail.rating\\\",\\\"body\\\":\\\"$ctx.args.reviewDetail.body\\\",\\\"aboutRestaurant\\\":\\\"$ctx.args.reviewDetail.aboutRestaurant\\\",\\\"myId\\\":\\\"$ctx.args.reviewDetail.myId\\\"`
 
-      } else if (mut === "createReviewRating"){
-        details = `\\\"rating\\\":\\\"$ctx.args.reviewRatingDetail.rating\\\","aboutReview\\\":\\\"$ctx.args.reviewRatingDetail.aboutReview\\\","myId\\\":\\\"$ctx.args.reviewRatingDetail.myId\\\"`
+      } else if (mut === "createReviewRating") {
+        details = `\\\"rating\\\":\\\"$ctx.args.reviewRatingDetail.rating\\\",\\\"aboutReview\\\":\\\"$ctx.args.reviewRatingDetail.aboutReview\\\",\\\"myId\\\":\\\"$ctx.args.reviewRatingDetail.myId\\\"`
 
-      } else if (mut === "sendFriendRequest"){
+      } else if (mut === "sendFriendRequest") {
         details = `\\\"myId\\\":\\\"$ctx.args.myIdAndFriendId.myId\\\",\\\"firendId\\\":\\\"$ctx.args.myIdAndFriendId.firendId\\\"`
 
-      } else if (mut === "acceptFriendRequest"){
+      } else if (mut === "acceptFriendRequest") {
         details = `\\\"myId\\\":\\\"$ctx.args.myIdAndFriendId.myId\\\",\\\"firendId\\\":\\\"$ctx.args.myIdAndFriendId.firendId\\\"`
 
-      } else if (mut === "createCuisine"){
+      } else if (mut === "createCuisine") {
         details = `\\\"cuisineName\\\":\\\"$ctx.args.cuisineName\\\"`
 
-      } else if (mut === "createCity"){
-        details = `\\\"cityName\\\":\\\"$ctx.args.cityName\\\"`
+      } else if (mut === "createCity") {
+        details = `\\\"cityName\\\":\\\"$ctx.args.cityDetail.cityName\\\",\\\"stateId\\\":\\\"$ctx.args.cityDetail.stateId\\\"`
 
-      } else if (mut === "createState"){
+      } else if (mut === "createState") {
         details = `\\\"stateName\\\":\\\"$ctx.args.stateName\\\"`
 
-      } else if (mut === "addionOfResouces"){
+      } else if (mut === "addionOfResouces") {
         details = `\\\"action\\\":\\\"$ctx.args.action\\\"`
 
       }
@@ -365,13 +384,13 @@ export class BackendStack extends cdk.Stack {
       httpDataSource.createResolver({
         typeName: "Mutation",
         fieldName: mut,
-        requestMappingTemplate: appsync.MappingTemplate.fromString(requestTemplate(details,mut)),
+        requestMappingTemplate: appsync.MappingTemplate.fromString(requestTemplate(details, mut)),
         responseMappingTemplate: appsync.MappingTemplate.fromString(responseTemplate())
       })
 
     })
 
-    new events.Rule(this,"ruleForConsumer",{
+    new events.Rule(this, "ruleForConsumer", {
       eventPattern: {
         source: [EVENT_SOURCE],
         detailType: [...mutations,],
@@ -381,7 +400,7 @@ export class BackendStack extends cdk.Stack {
 
     //Creating no Data source for subscription
 
-    const noDataSource = saasApi.addNoneDataSource("noDataSource",{
+    const noDataSource = saasApi.addNoneDataSource("noDataSource", {
       name: "noDataSource",
       description: "Does not save incoming data. It is for subscription"
     });

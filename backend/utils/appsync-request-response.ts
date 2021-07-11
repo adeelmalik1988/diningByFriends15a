@@ -17,7 +17,7 @@ export const requestTemplate = ( detail: string, detailType: string ) => {
                           "DetailType":"${detailType}",
                           "Source":"${EVENT_SOURCE}",
                           "EventBusName":"default",
-                          "Detail":"${detail}"
+                          "Detail":"{${detail}}"
                       }
                   ]
               }

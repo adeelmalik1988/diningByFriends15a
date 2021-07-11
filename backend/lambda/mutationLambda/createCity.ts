@@ -1,12 +1,27 @@
-import * as gremlin from "gremlin"
+//import * as gremlin from "gremlin"
+import { structure, process as gprocess , driver } from './gremlinReturnConversion'
 import { Edges, Vertics, VerticsCityLabel, VerticsStateLabel, CityInput } from "./MutationTypes"
 import { nanoid } from "nanoid"
 
 
 
-const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
-const Graph = gremlin.structure.Graph
-const uri = process.env.NEPTUNE_WRITER
+const DriverRemoteConnection = driver.DriverRemoteConnection
+const Graph = structure.Graph
+//const uri = process.env.NEPTUNE_WRITER
+
+declare var process: {
+    env: {
+
+        NEPTUNE_WRITER: string,
+        NEPTUNE_PORT: string,
+        APPSYNC_ENDPOINT_URL: string,
+        AWS_REGION: string,
+        AWS_ACCESS_KEY_ID: string,
+        AWS_SECRET_ACCESS_KEY: string,
+        AWS_SESSION_TOKEN: string
+        
+    }
+}
 
 export default async function createCity(cityDetail: CityInput) {
 
@@ -17,13 +32,22 @@ export default async function createCity(cityDetail: CityInput) {
 
     }
 
+    console.log('addCity',addCity)
+
     //let dc = new DriverRemoteConnection(`wss://${uri}/gremlin`, {})
-    let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    //let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    let dc = new DriverRemoteConnection(`wss://${process.env.NEPTUNE_WRITER}:${process.env.NEPTUNE_PORT}/gremlin`, {
+        MimeType: 'application/vnd.gremlin-v2.0+json',
+        Headers: {},
+    })
+    console.log('NEPTUNE_WRITER', process.env.NEPTUNE_WRITER)
+    console.log('NEPTUNE_PORT', process.env.NEPTUNE_PORT)
+
 
 
     const graph = new Graph()
     const g = graph.traversal().withRemote(dc)
-    const __ = gremlin.process.statics
+    const __ = gprocess.statics
     //restaurant_id --(within)-> city --(within)--> state
     try {
         let data = await g.addV(`${Vertics.CITY}`).

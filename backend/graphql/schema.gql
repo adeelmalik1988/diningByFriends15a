@@ -29,7 +29,7 @@ type City {
     label: String!
 }
 
-type CityInput {
+input CityInput {
     cityName: String!
     stateId: String!
 }
@@ -120,6 +120,11 @@ input RestaurantsMyFreindsReviewedRatedPastXDaysInput {
     pastDays: Int!
 }
 
+type RestaurantPersonlize {
+    restaurantName: String!
+    rating: String!
+}
+
 type Query {
     getRestaurants : [Restaurant]
     getPersons: [Person]
@@ -132,12 +137,12 @@ type Query {
     getFriends(myId: String): [Person]
     getRestaurantNewestReviews(RestaurantId: String!): [Review]
     getMyFriendsOfFriends(myId: String): [Person]
-    getXRelatedToY(xAndYIds: XRelatedToYInput): [Person]
+    getXRelatedToY(xAndYIds: XRelatedToYInput): [String]
     getRestaurantHighestRatedNearMeCuisineSpecific(myIdAndCuisine: RestaurantHighestRatedNearMeCuisineSpecificInput): Restaurant
     getTenRestaurantsHighestRattedNearMe(myId: String!): [Restaurant]
-    getRestaurantsMyFriendRecommend(myId: String!): [Restaurant]
-    getBestRestaurantsOnBasedMyFriendsRating(myId: String!): [Restaurant]
-    getRestaurantsMyFreindsReviewedRatedPastXDays(myIdAndPastDays: RestaurantsMyFreindsReviewedRatedPastXDaysInput): [Restaurant]
+    getRestaurantsMyFriendRecommend(myId: String!): [RestaurantPersonlize]
+    getBestRestaurantsOnBasedMyFriendsRating(myId: String!): [RestaurantPersonlize]
+    getRestaurantsMyFreindsReviewedRatedPastXDays(myIdAndPastDays: RestaurantsMyFreindsReviewedRatedPastXDaysInput): [RestaurantPersonlize]
 
 }
 
@@ -168,7 +173,7 @@ type Mutation {
     sendFriendRequest(myIdAndFriendId: FriendRequestInput!): Event
     acceptFriendRequest(myIdAndFriendId: FriendRequestInput!): Event
     addionOfResouces(action: ACTIONS): AdditionOfResoucesOutput
-        @aws_iam      
+       
     
 }
 

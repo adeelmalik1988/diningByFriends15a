@@ -1,19 +1,38 @@
-import * as gremlin from "gremlin"
+//import * as gremlin from "gremlin"
+import { structure, process as gprocess , driver } from './gremlinReturnConversion'
 import {APIGatewayProxyEvent, APIGatewayProxyResult, Context} from "aws-lambda"
 import { Edges, RestaurantReturn, Vertics, VerticsCityLabel, VerticsCuisineLabel, VerticsPersonLabel, VerticsRestaurantLabel, VerticsReviewLabel } from "./QueryTypes"
 
-const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
-const Graph = gremlin.structure.Graph
-const uri = process.env.NEPTUNE_READER
+const DriverRemoteConnection = driver.DriverRemoteConnection
+const Graph = structure.Graph
+//const uri = process.env.NEPTUNE_READER
+
+declare var process: {
+    env: {
+        
+        NEPTUNE_READER: string,
+        NEPTUNE_PORT: string
+    }
+}
 
 export default async function GetTenRestaurantsHighestRattedNearMe(myId: string) {
 
-    let dc = new DriverRemoteConnection(`wss://${uri}/gremlin`,{})
+    //let dc = new DriverRemoteConnection(`wss://${uri}/gremlin`,{})
+    //let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    let dc = new DriverRemoteConnection(`wss://${process.env.NEPTUNE_READER}:${process.env.NEPTUNE_PORT}/gremlin`, {
+        MimeType: 'application/vnd.gremlin-v2.0+json',
+        Headers: {},
+    })
+    
+    console.log('NEPTUNE_READER',process.env.NEPTUNE_READER)
+    console.log('NEPTUNE_PORT',process.env.NEPTUNE_PORT)
+
+
 
     const graph = new Graph()
     const g = graph.traversal().withRemote(dc)
-    const __ = gremlin.process.statics
-    const order = gremlin.process.order
+    const __ = gprocess.statics
+    const order = gprocess.order
 
     try {
         let data = 

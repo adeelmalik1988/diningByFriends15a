@@ -1,10 +1,25 @@
-import * as gremlin from "gremlin"
+//import * as gremlin from "gremlin"
+import { structure, process as gprocess , driver } from './gremlinReturnConversion'
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda"
 import { Edges, MutationActions, RestaurantInput, Vertics, VerticsCityLabel, VerticsCuisineLabel, VerticsRestaurantLabel } from "./MutationTypes"
 import { nanoid } from "nanoid"
 import * as appsync from "aws-appsync"
 const gql =  require("graphql-tag")
 require("cross-fetch/polyfill")
+
+declare var process: {
+    env: {
+
+        NEPTUNE_WRITER: string,
+        NEPTUNE_PORT: string,
+        APPSYNC_ENDPOINT_URL: string,
+        AWS_REGION: string,
+        AWS_ACCESS_KEY_ID: string,
+        AWS_SECRET_ACCESS_KEY: string,
+        AWS_SESSION_TOKEN: string
+        
+    }
+}
 
 //creating graphql client
 const graphqlClient = new appsync.AWSAppSyncClient({
@@ -27,8 +42,8 @@ const mutation = gql`mutation addionOfResouces($action: String!){
 
 }`
 
-const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
-const Graph = gremlin.structure.Graph
+const DriverRemoteConnection = driver.DriverRemoteConnection
+const Graph = structure.Graph
 const uri = process.env.NEPTUNE_WRITER
 
 export default async function createRestaurant(restaurantDetail: RestaurantInput) {
@@ -42,14 +57,23 @@ export default async function createRestaurant(restaurantDetail: RestaurantInput
         cuisine_id: restaurantDetail.cuisineId
     }
 
+    console.log('addResturant', addResturant)
+
     //let dc = new DriverRemoteConnection(`wss://${uri}/gremlin`, {})
-    let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    //let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    let dc = new DriverRemoteConnection(`wss://${process.env.NEPTUNE_WRITER}:${process.env.NEPTUNE_PORT}/gremlin`, {
+        MimeType: 'application/vnd.gremlin-v2.0+json',
+        Headers: {},
+    })
+    console.log('NEPTUNE_WRITER', process.env.NEPTUNE_WRITER)
+    console.log('NEPTUNE_PORT', process.env.NEPTUNE_PORT)
+
 
 
     const graph = new Graph()
     const g = graph.traversal().withRemote(dc)
     //restaurant_id --(within)-> city --(within)--> state
-    const __ = gremlin.process.statics
+    const __ = gprocess.statics
 
 
     try {
