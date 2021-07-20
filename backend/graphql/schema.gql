@@ -8,7 +8,7 @@ type Restaurant {
     address: String!
     city: String!
     state: String!
-    rating: Float!
+    rating: String!
     cuisine: String!
     label: String!
 }
@@ -65,16 +65,6 @@ input PersonInput {
 
 }
 
-type Review {
-    id: ID!
-    rating: Int!
-    body: String!
-    aboutRestaurant: String!
-    createdAt: String!
-    createrId: String!
-    lable: String!
-}
-
 input ReviewInput {
     rating: Int!
     body: String!
@@ -82,13 +72,16 @@ input ReviewInput {
     myId: String!
 }
 
-type ReviewRating {
-    id: ID!
-    rating: Int!
-    createdAt: String!
-    aboutReview: String!
-    createrId: String!
-    label: String!
+type Review {
+	id: ID!
+	rating: String!
+	body: String!
+	aboutRestaurant: String!
+	createdAt: String!
+	createrId: String!
+	createrFirstName: String!
+	createrLastName: String!
+	label: String!
 }
 
 input ReviewRatingInput {
@@ -115,6 +108,17 @@ input XRelatedToYInput {
 
 }
 
+type ReviewRating {
+    reviewId: ID!
+    rating: String!
+    createdDate: String!
+    aboutReview: String!
+    createrId: String!
+    createrFirstName: String!
+    createrLastName: String!
+    label: String!
+}
+
 input RestaurantsMyFreindsReviewedRatedPastXDaysInput {
     myId: String!
     pastDays: Int!
@@ -123,6 +127,12 @@ input RestaurantsMyFreindsReviewedRatedPastXDaysInput {
 type RestaurantPersonlize {
     restaurantName: String!
     rating: String!
+}
+
+type FriendsReturn {
+    firstName: String!
+    lastName: String!
+    personId: ID!
 }
 
 type Query {
@@ -134,11 +144,11 @@ type Query {
     getReviewRatings(reviewId: String!): [ReviewRating]
     getFriendRequests(myId: String!): [FreindRequest]
     getPersonById(personId: String!): [Person]
-    getFriends(myId: String): [Person]
+    getFriends(myId: String): [FriendsReturn]
     getRestaurantNewestReviews(RestaurantId: String!): [Review]
     getMyFriendsOfFriends(myId: String): [Person]
     getXRelatedToY(xAndYIds: XRelatedToYInput): [String]
-    getRestaurantHighestRatedNearMeCuisineSpecific(myIdAndCuisine: RestaurantHighestRatedNearMeCuisineSpecificInput): Restaurant
+    getRestaurantHighestRatedNearMeCuisineSpecific(myIdAndCuisine: RestaurantHighestRatedNearMeCuisineSpecificInput): [Restaurant]
     getTenRestaurantsHighestRattedNearMe(myId: String!): [Restaurant]
     getRestaurantsMyFriendRecommend(myId: String!): [RestaurantPersonlize]
     getBestRestaurantsOnBasedMyFriendsRating(myId: String!): [RestaurantPersonlize]
@@ -148,7 +158,7 @@ type Query {
 
 input FriendRequestInput {
     myId: String!
-    firendId: String!
+    friendId: String!
 }
 
 enum ACTIONS {

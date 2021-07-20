@@ -17,7 +17,7 @@ declare var process: {
         AWS_ACCESS_KEY_ID: string,
         AWS_SECRET_ACCESS_KEY: string,
         AWS_SESSION_TOKEN: string
-        
+
     }
 }
 
@@ -96,15 +96,15 @@ export default async function createRestaurant(restaurantDetail: RestaurantInput
         dc.close()
         console.log("Restaurant Added", data)
 
-        
-        const result = await graphqlClient.mutate({
-            mutation,
-            variables: {
-                action: `${MutationActions.RESTAURANT_ADDED}`
-            }
-        })
 
-        console.log("mutation Called", result)
+        // const result = await graphqlClient.mutate({
+        //     mutation,
+        //     variables: {
+        //         action: `${MutationActions.RESTAURANT_ADDED}`
+        //     }
+        // })
+
+        // console.log("mutation Called", result)
 
 
 
@@ -113,6 +113,8 @@ export default async function createRestaurant(restaurantDetail: RestaurantInput
 
     } catch (err) {
         console.log("ERROR", err)
+        dc.close()
+
         return null
     }
 

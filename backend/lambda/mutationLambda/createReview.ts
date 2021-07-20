@@ -56,12 +56,16 @@ export default async function createReview(reviewDetail: ReviewInput) {
 
     const addReview = {
         review_id: nanoid(10),      
-        rating: reviewDetail.rating,
+        rating: Number(
+
+            reviewDetail.rating
+        ),
         body: reviewDetail.body,
         about_restaurant: reviewDetail.aboutRestaurant,
         createdAt: reviewCreatedAt,
         createrId: reviewDetail.myId
     }
+    
 
     console.log('addReview', addReview)
 
@@ -103,14 +107,14 @@ export default async function createReview(reviewDetail: ReviewInput) {
         
 
         
-        const result = await graphqlClient.mutate({
-            mutation,
-            variables: {
-                action: `${MutationActions.REVIEW_CREATED}`
-            }
-        })
+        // const result = await graphqlClient.mutate({
+        //     mutation,
+        //     variables: {
+        //         action: `${MutationActions.REVIEW_CREATED}`
+        //     }
+        // })
 
-        console.log("mutation Called", result)
+        // console.log("mutation Called", result)
 
 
 
@@ -120,6 +124,8 @@ export default async function createReview(reviewDetail: ReviewInput) {
 
     } catch (err) {
         console.log("ERROR", err)
+        dc.close()
+
         return null
     }
 

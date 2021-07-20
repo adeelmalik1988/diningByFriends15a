@@ -43,6 +43,8 @@ export default async function getReviewRatings(reviewId: string) {
             `${getReviewRatingsReturn.createdAt}`,
             `${getReviewRatingsReturn.aboutReview}`,
             `${getReviewRatingsReturn.createrId}`,
+            `${getReviewRatingsReturn.createrFirstName}`,
+            `${getReviewRatingsReturn.createrLastName}`,
 
         ).
         by(__.label()).
@@ -51,6 +53,8 @@ export default async function getReviewRatings(reviewId: string) {
         by(`${VerticsReviewRatingLabel.REVIEW_DATE}`).
         by(__.outE(`${Edges.ABOUT}`).otherV().values(`${VerticsReviewLabel.REVIEW_ID}`)).
         by(__.inE(`${Edges.WROTE}`).otherV().values(`${VerticsPersonLabel.PERSON_ID}`)).
+        by(__.inE(`${Edges.WROTE}`).otherV().values(`${VerticsPersonLabel.FIRST_NAME}`)).
+        by(__.inE(`${Edges.WROTE}`).otherV().values(`${VerticsPersonLabel.LAST_NAME}`)).
         toList()
         //await g.V().hasLabel(`${Vertics.CITY}`).as("v")
         //let vertices = Array()

@@ -79,6 +79,8 @@ export default async function createCuisine(cuisineDetail: cuisineDetail) {
 
     } catch (err) {
         console.log("ERROR", err)
+        dc.close()
+
         return null
     }
 

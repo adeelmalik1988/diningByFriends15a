@@ -24,6 +24,7 @@ export default async function GetFriends(myId: string) {
     
     console.log('NEPTUNE_READER',process.env.NEPTUNE_READER)
     console.log('NEPTUNE_PORT',process.env.NEPTUNE_PORT)
+    console.log('Passed ID',myId)
 
 
     const graph = new Graph()
@@ -32,7 +33,7 @@ export default async function GetFriends(myId: string) {
 
     try {
         let data = await g.V().has(`${Vertics.PERSON}`, `${VerticsPersonLabel.PERSON_ID}`, `${myId}`).as('v').
-        select("v").inE(`${Edges.FRIENDSHIP}`).has(`${EdgeFriendshipLabel.STATUS}`, `${FriendRequestStatus.CONFIRMED}`).as("e").
+        select("v").bothE(`${Edges.FRIENDSHIP}`).has(`${EdgeFriendshipLabel.STATUS}`, `${FriendRequestStatus.CONFIRMED}`).as("e").
         project(
             `${FreindRequestReturn.personId}`,
             `${FreindRequestReturn.firstName}`,

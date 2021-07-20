@@ -51,7 +51,7 @@ export default async function sendFriendRequest(myIdAndFriendId: FriendRequestIn
         from_(__.V().has(`${Vertics.PERSON}`,`${VerticsPersonLabel.PERSON_ID}`,`${myIdAndFriendId.myId}`)).
         to(__.V().has(`${Vertics.PERSON}`,`${VerticsPersonLabel.PERSON_ID}`,`${myIdAndFriendId.friendId}`)).
         property(`${EdgeFriendshipLabel.STATUS}`,`${FriendRequestStatus.REQUESTED}`).
-        next()
+        iterate()
  
         //let vertices = Array()
 
@@ -63,12 +63,13 @@ export default async function sendFriendRequest(myIdAndFriendId: FriendRequestIn
         //     })
         // }
         dc.close()
-        console.log("Restaurant Added", data)
+        console.log("Freindship Added", data)
         return data
 
 
     } catch (err) {
         console.log("ERROR", err)
+        dc.close()
         return null
     }
 

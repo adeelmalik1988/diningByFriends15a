@@ -102,14 +102,14 @@ export default async function createPerson(personDetail: PersonInput) {
 
         console.log("data recieved:", data)
 
-        const result = await graphqlClient.mutate({
-            mutation,
-            variables: {
-                action: `${MutationActions.PERSON_ADDED}`
-            }
-        })
+        // const result = await graphqlClient.mutate({
+        //     mutation,
+        //     variables: {
+        //         action: `${MutationActions.PERSON_ADDED}`
+        //     }
+        // })
 
-        console.log("mutation Called", result)
+        // console.log("mutation Called", result)
 
 
         return data
@@ -117,6 +117,8 @@ export default async function createPerson(personDetail: PersonInput) {
 
     } catch (err) {
         console.log("ERROR", err)
+        dc.close()
+
         return null
     }
 

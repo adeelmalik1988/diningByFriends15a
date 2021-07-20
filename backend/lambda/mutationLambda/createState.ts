@@ -103,6 +103,8 @@ export default async function createState(stateDetail: stateDetail) {
 
     } catch (err) {
         console.log("ERROR", err)
+        dc.close()
+
         return null
     }
 

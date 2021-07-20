@@ -77,7 +77,7 @@ export default async function GetRestaurantsMyFriendRecommend(myId : String) {
         order().
         by(values ,order.desc).
         project(
-            'restaurant_name',
+            'restaurantName',
             'rating'
         ).by(
             keys

@@ -91,6 +91,8 @@ export default async function acceptFriendRequest(myIdAndFriendId: FriendRequest
 
     } catch (err) {
         console.log("ERROR", err)
+        dc.close()
+
         return null
     }
 

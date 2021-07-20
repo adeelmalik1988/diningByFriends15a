@@ -40,6 +40,8 @@ type AppsyncEvent = {
 
 exports.handler = async (event: AppsyncEvent) => {
 
+    console.log('event Receieve :', event)
+
     switch (event.info.fieldName) {
         case "getRestaurants":
             return await GetRestaurants();

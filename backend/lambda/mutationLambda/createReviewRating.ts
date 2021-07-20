@@ -58,7 +58,9 @@ export default async function createReviewRating(reviewRatingDetail: ReviewRatin
     const addReviewRating = {
         review_rating_id: nanoid(10),
         about: reviewRatingDetail.aboutReview,
-        rating: reviewRatingDetail.rating,
+        rating: Number(
+            reviewRatingDetail.rating
+        ),
         createdBy: reviewRatingDetail.myId,
         createdAt: reviewRatingCreatedAt
     }
@@ -99,14 +101,14 @@ export default async function createReviewRating(reviewRatingDetail: ReviewRatin
         // }
         dc.close()
 
-        const result = await graphqlClient.mutate({
-            mutation,
-            variables: {
-                action: `${MutationActions.REVIEW_RATING_CREATED}`
-            }
-        })
+        // const result = await graphqlClient.mutate({
+        //     mutation,
+        //     variables: {
+        //         action: `${MutationActions.REVIEW_RATING_CREATED}`
+        //     }
+        // })
 
-        console.log("mutation Called", result)
+        // console.log("mutation Called", result)
 
 
         return data
@@ -114,6 +116,7 @@ export default async function createReviewRating(reviewRatingDetail: ReviewRatin
 
     } catch (err) {
         console.log("ERROR", err)
+        dc.close()
         return null
     }
 

@@ -46,6 +46,7 @@ export default async function GetRestaurantNewestReviews(RestaurantId: string) {
             `${GetRestaurantNewestReviewsReturn.createrId}`,
             `${GetRestaurantNewestReviewsReturn.createrFirstName}`,
             `${GetRestaurantNewestReviewsReturn.createrLastName}`,
+            `${GetRestaurantNewestReviewsReturn.aboutRestaurant}`,
         ).
         by(__.label()).
         by(__.values(`${VerticsReviewLabel.REVIEW_ID}`)).
@@ -55,6 +56,7 @@ export default async function GetRestaurantNewestReviews(RestaurantId: string) {
         by(__.in_(`${Edges.WROTE}`).values(`${VerticsPersonLabel.PERSON_ID}`)).
         by(__.in_(`${Edges.WROTE}`).values(`${VerticsPersonLabel.FIRST_NAME}`)).
         by(__.in_(`${Edges.WROTE}`).values(`${VerticsPersonLabel.LAST_NAME}`)).
+        by(__.out(`${Edges.ABOUT}`).values(`${VerticsRestaurantLabel.RESTAURANT_ID}`)).
         toList()
 
         //let vertices = Array()

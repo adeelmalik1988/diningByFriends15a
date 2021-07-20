@@ -73,7 +73,7 @@ export default async function GetBestRestaurantsOnBasedMyFriendsRating(myId: str
         by(values ,order.desc).
         limit(1).
         project(
-            'restaurant_name',
+            'restaurantName',
             'rating'
         ).by(
             keys

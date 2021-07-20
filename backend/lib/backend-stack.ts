@@ -8,6 +8,7 @@ import * as lambda from "@aws-cdk/aws-lambda"
 import * as events from "@aws-cdk/aws-events"
 import * as eventTargets from "@aws-cdk/aws-events-targets"
 import { EVENT_SOURCE, responseTemplate, requestTemplate } from "../utils/appsync-request-response"
+import { Duration } from '@aws-cdk/core';
 
 export class BackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -210,7 +211,8 @@ export class BackendStack extends cdk.Stack {
       },
       vpcSubnets: {
         subnetType: ec2.SubnetType.ISOLATED
-      }
+      },
+      timeout: Duration.seconds(15)
     })
 
     const mutationLambda = new lambda.Function(this, "LambdaForMutation", {
@@ -227,6 +229,7 @@ export class BackendStack extends cdk.Stack {
         subnetType: ec2.SubnetType.ISOLATED
       },
       role: roleMutationLambda,
+      timeout: Duration.seconds(15)
 
     })
 
@@ -337,65 +340,65 @@ export class BackendStack extends cdk.Stack {
       }
     })
 
-    events.EventBus.grantAllPutEvents(httpDataSource)
-
+    
     //Defining Resolvers for Mutation
-
-
+    
+    
     /* Mutation */
-
+    
     const mutations = ["createPerson", "createRestaurant", "createReview", "createReviewRating", "sendFriendRequest", "acceptFriendRequest", "createCuisine", "createCity", "createState"]
-
+    
     mutations.forEach((mut) => {
       let details = `\\\"id\\\": \\\"$ctx.args.id\\\"`;
-
+      
       if (mut === "createPerson") {
         details = `\\\"firstName\\\":\\\"$ctx.args.personDetail.firstName\\\",\\\"lastName\\\":\\\"$ctx.args.personDetail.lastName\\\",\\\"email\\\":\\\"$ctx.args.personDetail.email\\\",\\\"cityId\\\":\\\"$ctx.args.personDetail.cityId\\\"`
-
+        
       } else if (mut === "createRestaurant") {
         details = `\\\"name\\\":\\\"$ctx.args.restaurantDetail.name\\\",\\\"address\\\":\\\"$ctx.args.restaurantDetail.address\\\",\\\"cityId\\\":\\\"$ctx.args.restaurantDetail.cityId\\\",\\\"stateId\\\":\\\"$ctx.args.restaurantDetail.stateId\\\",\\\"cuisineId\\\":\\\"$ctx.args.restaurantDetail.cuisineId\\\"`
-
+        
       } else if (mut === "createReview") {
         details = `\\\"rating\\\":\\\"$ctx.args.reviewDetail.rating\\\",\\\"body\\\":\\\"$ctx.args.reviewDetail.body\\\",\\\"aboutRestaurant\\\":\\\"$ctx.args.reviewDetail.aboutRestaurant\\\",\\\"myId\\\":\\\"$ctx.args.reviewDetail.myId\\\"`
-
+        
       } else if (mut === "createReviewRating") {
         details = `\\\"rating\\\":\\\"$ctx.args.reviewRatingDetail.rating\\\",\\\"aboutReview\\\":\\\"$ctx.args.reviewRatingDetail.aboutReview\\\",\\\"myId\\\":\\\"$ctx.args.reviewRatingDetail.myId\\\"`
-
+        
       } else if (mut === "sendFriendRequest") {
-        details = `\\\"myId\\\":\\\"$ctx.args.myIdAndFriendId.myId\\\",\\\"firendId\\\":\\\"$ctx.args.myIdAndFriendId.firendId\\\"`
-
+        details = `\\\"myId\\\":\\\"$ctx.args.myIdAndFriendId.myId\\\",\\\"friendId\\\":\\\"$ctx.args.myIdAndFriendId.friendId\\\"`
+        
       } else if (mut === "acceptFriendRequest") {
-        details = `\\\"myId\\\":\\\"$ctx.args.myIdAndFriendId.myId\\\",\\\"firendId\\\":\\\"$ctx.args.myIdAndFriendId.firendId\\\"`
-
+        details = `\\\"myId\\\":\\\"$ctx.args.myIdAndFriendId.myId\\\",\\\"friendId\\\":\\\"$ctx.args.myIdAndFriendId.friendId\\\"`
+        
       } else if (mut === "createCuisine") {
         details = `\\\"cuisineName\\\":\\\"$ctx.args.cuisineName\\\"`
-
+        
       } else if (mut === "createCity") {
         details = `\\\"cityName\\\":\\\"$ctx.args.cityDetail.cityName\\\",\\\"stateId\\\":\\\"$ctx.args.cityDetail.stateId\\\"`
-
+        
       } else if (mut === "createState") {
         details = `\\\"stateName\\\":\\\"$ctx.args.stateName\\\"`
-
-      } else if (mut === "addionOfResouces") {
-        details = `\\\"action\\\":\\\"$ctx.args.action\\\"`
-
-      }
-
+        
+      } 
+      
       httpDataSource.createResolver({
         typeName: "Mutation",
         fieldName: mut,
         requestMappingTemplate: appsync.MappingTemplate.fromString(requestTemplate(details, mut)),
         responseMappingTemplate: appsync.MappingTemplate.fromString(responseTemplate())
       })
-
+      
     })
-
-    new events.Rule(this, "ruleForConsumer", {
+    
+    //const diningByFriendsEventBus = new events.EventBus(this, "diningByFriendsEventBus")
+    events.EventBus.grantAllPutEvents(httpDataSource)
+    
+    const ruleForConsumer = new events.Rule(this, "ruleForConsumerUpdated", {
       eventPattern: {
         source: [EVENT_SOURCE],
         detailType: [...mutations,],
       },
-      targets: [new eventTargets.LambdaFunction(mutationLambda)]
+      targets: [new eventTargets.LambdaFunction(mutationLambda)],
+      //eventBus: diningByFriendsEventBus
     })
 
     //Creating no Data source for subscription

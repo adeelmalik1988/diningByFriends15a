@@ -17,6 +17,7 @@ export default async function GetRestaurantHighestRatedNearMeCuisineSpecific(myI
 
     //let dc = new DriverRemoteConnection(`wss://${uri}/gremlin`, {})
     //let dc = new DriverRemoteConnection(`ws://${uri}/gremlin`)
+    console.log('arg passed :', myIdAndCuisine)
 
     let dc = new DriverRemoteConnection(`wss://${process.env.NEPTUNE_READER}:${process.env.NEPTUNE_PORT}/gremlin`, {
         MimeType: 'application/vnd.gremlin-v2.0+json',
@@ -46,25 +47,23 @@ export default async function GetRestaurantHighestRatedNearMeCuisineSpecific(myI
                     `${RestaurantReturn.id}`,
                     `${RestaurantReturn.name}`,
                     `${RestaurantReturn.address}`,
-                    `${RestaurantReturn.cuisine}`,
                     `${RestaurantReturn.city}`,
                     `${RestaurantReturn.state}`,
                     `${RestaurantReturn.rating}`,
+                    `${RestaurantReturn.cuisine}`,
                     `${RestaurantReturn.label}`,
                 ).
                 by(`${VerticsRestaurantLabel.RESTAURANT_ID}`).
                 by(`${VerticsRestaurantLabel.RESTAURANT_NAME}`).
                 by(`${VerticsRestaurantLabel.ADDRESS}`).
-                by(
-                    __.select("restaurant").outE(`${Edges.SERVES}`).otherV().values(`${VerticsCuisineLabel.CUISINE_NAME}`)
-                ).
                 by(__.select("restaurant").outE(`${Edges.WITHIN}`).otherV().values(`${VerticsCityLabel.NAME}`)).
                 by(__.select("restaurant").out(`${Edges.WITHIN}`).outE(`${Edges.WITHIN}`).otherV().values(`${VerticsCityLabel.NAME}`)).
                 by(__.coalesce(
                     __.select("restaurant").in_(`${Edges.ABOUT}`).values(`${VerticsReviewLabel.RATING}`).mean(),
                     __.constant(0)
-                )
-                ).
+                    )
+                    ).
+                    by( __.select("restaurant").outE(`${Edges.SERVES}`).otherV().values(`${VerticsCuisineLabel.CUISINE_NAME}`)).
                 by(__.select("restaurant").label()).
                 order().by(
                     `${RestaurantReturn.rating}`, order.desc

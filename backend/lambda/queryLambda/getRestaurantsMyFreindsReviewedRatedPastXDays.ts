@@ -30,6 +30,8 @@ export default async function GetRestaurantsMyFreindsReviewedRatedPastXDays(myId
     var days = myIdAndPastDays.pastDays
     var datelast = new Date(datenow.getTime() - (days * 24 * 60 * 60 * 1000)).toISOString()
 
+    console.log('Previous Date: ', datelast)
+
     const graph = new Graph()
     const g = graph.traversal().withRemote(dc)
     const __ = gprocess.statics
@@ -98,7 +100,7 @@ export default async function GetRestaurantsMyFreindsReviewedRatedPastXDays(myId
         order().
         by(values ,order.desc).
         project(
-            'restaurant_name',
+            'restaurantName',
             'rating'
         ).by(
             keys

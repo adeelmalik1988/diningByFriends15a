@@ -68,12 +68,12 @@ export enum GetRestaurantNewestReviewsReturn {
     createrId = 'createrId',
     createrFirstName = 'createrFirstName',
     createrLastName = 'createrLastName',
-    reviewRatingDetail = 'reviewRatingDetail'
+    aboutRestaurant = 'aboutRestaurant',
 }
 
 export enum getMyFriendsOfFriendsReturn {
     label = 'label',
-    personId = 'personId',
+    personId = 'id',
     firstName = 'firstName',
     lastName = 'lastName',
     email = 'email',
@@ -86,6 +86,8 @@ export enum getReviewRatingsReturn {
     createdAt = 'createdAt',
     aboutReview = 'aboutReview',
     createrId = 'createrId',
+    createrFirstName = 'createrFirstName',
+    createrLastName = 'createrLastName',
     label = 'label'
 }
 

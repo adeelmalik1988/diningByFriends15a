@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/async": "^2.0.50",
+    "async": "^3.2.0",
     "aws-appsync": "^1.8.1",
     "aws-lambda": "^1.0.6",
     "cross-fetch": "^3.0.4",
